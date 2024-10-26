@@ -1,23 +1,123 @@
-from app.repositories.note_repository import NoteRepository
-from app.repositories.user_repository import UserProfileRepository
-from app.models.note import NoteCreate
+# main.py
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
 from uuid import UUID
 
-async def main():
-    # Initialize repositories
-    note_repo = NoteRepository()
-    user_repo = UserProfileRepository()
-    
-    # Create a note
-    new_note = NoteCreate(
-        title="Test Note",
-        content="This is a test note",
-        user_id=UUID('dd36bf87-4d40-4f3d-a631-e6d98b425321')
-    )
-    note = await note_repo.create(new_note)
-    
-    # Get user profile
-    user = await user_repo.get(UUID('dd36bf87-4d40-4f3d-a631-e6d98b425321'))
-    
-    # Get user's notes with pagination
-    notes = await note_repo.get_user_notes(user.id, page=1, page_size=10)
+from app.repositories.note import NoteRepository
+from app.repositories.user import UserProfileRepository 
+
+from app.models.note import Note, NoteCreate, NoteUpdate
+from app.models.user import UserProfile, UserProfileUpdate
+from app.config import settings
+
+app = FastAPI(
+    title="Notes API",
+    description="API for managing notes and user profiles",
+    version="1.0.0"
+)
+
+# CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Dependency injection
+async def get_note_repo():
+    return NoteRepository()
+
+async def get_user_repo():
+    return UserProfileRepository()
+
+# Note endpoints
+@app.post("/notes/", response_model=Note)
+async def create_note(
+    note: NoteCreate,
+    note_repo: NoteRepository = Depends(get_note_repo)
+):
+    return await note_repo.create(note)
+
+@app.get("/notes/{note_id}", response_model=Note)
+async def get_note(
+    note_id: int,
+    note_repo: NoteRepository = Depends(get_note_repo)
+):
+    note = await note_repo.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return note
+
+@app.get("/users/{user_id}/notes", response_model=List[Note])
+async def get_user_notes(
+    user_id: UUID,
+    page: int = 1,
+    page_size: int = 10,
+    note_repo: NoteRepository = Depends(get_note_repo)
+):
+    return await note_repo.get_user_notes(user_id, page, page_size)
+
+@app.put("/notes/{note_id}", response_model=Note)
+async def update_note(
+    note_id: int,
+    note: NoteUpdate,
+    note_repo: NoteRepository = Depends(get_note_repo)
+):
+    updated_note = await note_repo.update(note_id, note)
+    if not updated_note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return updated_note
+
+@app.delete("/notes/{note_id}")
+async def delete_note(
+    note_id: int,
+    note_repo: NoteRepository = Depends(get_note_repo)
+):
+    success = await note_repo.delete(note_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return {"message": "Note deleted successfully"}
+
+# User profile endpoints
+@app.get("/users/{user_id}", response_model=UserProfile)
+async def get_user_profile(
+    user_id: UUID,
+    user_repo: UserProfileRepository = Depends(get_user_repo)
+):
+    user = await user_repo.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.get("/users/username/{username}", response_model=UserProfile)
+async def get_user_by_username(
+    username: str,
+    user_repo: UserProfileRepository = Depends(get_user_repo)
+):
+    user = await user_repo.get_by_username(username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.put("/users/{user_id}", response_model=UserProfile)
+async def update_user_profile(
+    user_id: UUID,
+    profile: UserProfileUpdate,
+    user_repo: UserProfileRepository = Depends(get_user_repo)
+):
+    updated_profile = await user_repo.update(user_id, profile)
+    if not updated_profile:
+        raise HTTPException(status_code=404, detail="User not found")
+    return updated_profile
+
+@app.get("/users/search/{query}", response_model=List[UserProfile])
+async def search_users(
+    query: str,
+    page: int = 1,
+    page_size: int = 10,
+    user_repo: UserProfileRepository = Depends(get_user_repo)
+):
+    return await user_repo.search(query, page, page_size)
