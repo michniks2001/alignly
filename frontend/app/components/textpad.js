@@ -12,6 +12,7 @@ import {
 } from "slate";
 import { withHistory } from "slate-history";
 import { Editable, ReactEditor, Slate, withReact } from "slate-react";
+import "@fontsource/open-sauce-sans";
 
 const SHORTCUTS = {
   "*": "list-item",
@@ -70,6 +71,11 @@ const MarkdownShortcutsExample = () => {
         placeholder='Write some markdown...'
         spellCheck
         autoFocus
+        style={{
+          fontFamily: `'Open Sauce Sans', sans-serif`,
+          outline: "none",
+          width: "70vw",
+        }}
       />
     </Slate>
   );
@@ -78,6 +84,7 @@ const withShortcuts = (editor) => {
   const { deleteBackward, insertText } = editor;
   editor.insertText = (text) => {
     const { selection } = editor;
+
     if (text.endsWith(" ") && selection && Range.isCollapsed(selection)) {
       const { anchor } = selection;
       const block = Editor.above(editor, {
@@ -172,6 +179,12 @@ const Element = ({ attributes, children, element }) => {
       return <h6 {...attributes}>{children}</h6>;
     case "list-item":
       return <li {...attributes}>{children}</li>;
+    case "bold":
+      return <strong {...attributes}>{children}</strong>;
+    case "italic":
+      return <em {...attributes}>{children}</em>;
+    case "underline":
+      return <u {...attributes}>{children}</u>;
     default:
       return <p {...attributes}>{children}</p>;
   }
