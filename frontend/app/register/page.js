@@ -1,58 +1,147 @@
 "use client";
 
 import React, { useState } from "react";
-import { TextField, Button, Container, Typography } from "@mui/material";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../firebase";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  InputAdornment,
+  Link,
+} from "@mui/material";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
+import { auth } from "../firebase";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import { useTheme } from "@mui/material/styles";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const theme = useTheme();
 
   const handleSignUp = async (event) => {
     event.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("User created successfully!");
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await sendEmailVerification(userCredential.user);
+      alert(
+        "User Created Successfully! Please check your email for verification."
+      );
     } catch (error) {
       setError(error.message);
     }
   };
 
   return (
-    <Container maxWidth='sm'>
-      <Typography variant='h4' component='h1' gutterBottom>
-        Sign Up
-      </Typography>
-      <form onSubmit={handleSignUp}>
-        <TextField
-          label='Email'
-          variant='outlined'
-          fullWidth
-          margin='normal'
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-          label='Password'
-          type='password'
-          variant='outlined'
-          fullWidth
-          margin='normal'
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <Typography color='error'>{error}</Typography>}
-        <Button type='submit' variant='contained' color='primary' fullWidth>
-          Sign Up
-        </Button>
-      </form>
-    </Container>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        width: "100vw",
+        backgroundColor: theme.palette.background.default,
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          padding: 4,
+          width: "100%",
+          maxWidth: 400,
+          borderRadius: 2,
+          backgroundColor: theme.palette.background.paper,
+        }}
+      >
+        <Typography
+          variant='h4'
+          component='h1'
+          gutterBottom
+          align='center'
+          sx={{ mb: 4, fontWeight: "bold", color: theme.palette.primary.main }}
+        >
+          Join Alignly
+        </Typography>
+        <form onSubmit={handleSignUp}>
+          <TextField
+            label='Email'
+            variant='outlined'
+            fullWidth
+            margin='normal'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <EmailIcon color='primary' />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label='Password'
+            type='password'
+            variant='outlined'
+            fullWidth
+            margin='normal'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <LockIcon color='primary' />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ mb: 3 }}
+          />
+          {error && (
+            <Typography color='error' sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
+          <Button
+            type='submit'
+            variant='contained'
+            fullWidth
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.background.paper,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+              textTransform: "none",
+              fontSize: "1rem",
+              padding: "10px 0",
+              borderRadius: "8px",
+            }}
+          >
+            Create Account
+          </Button>
+        </form>
+        <Typography
+          variant='body2'
+          align='center'
+          sx={{ mt: 3, color: theme.palette.text.secondary }}
+        >
+          Already have an account?{" "}
+          <Link href='/login' color='secondary' sx={{ textDecoration: "none" }}>
+            Log in
+          </Link>
+        </Typography>
+      </Paper>
+    </Box>
   );
 };
 

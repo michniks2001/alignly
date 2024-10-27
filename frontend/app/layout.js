@@ -5,7 +5,7 @@ import Sidebar from "./components/sidebar";
 import { Stack, ThemeProvider } from "@mui/material";
 import "@fontsource/open-sauce-sans";
 import Providers, { theme } from "./theme";
-import CssBaseline from "@mui/material";
+import ClientOnly from "./clientonly";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,10 +28,12 @@ export default function RootLayout({ children }) {
     <html lang='en'>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Providers>
-          <Stack direction='row'>
-            <Sidebar />
-            {children}
-          </Stack>
+          <ClientOnly>
+            <Stack direction='row'>
+              <Sidebar />
+              {children}
+            </Stack>
+          </ClientOnly>
         </Providers>
       </body>
     </html>

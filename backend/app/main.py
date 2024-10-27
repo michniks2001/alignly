@@ -5,7 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.repositories.note import NoteRepository
-from app.repositories.user import UserProfileRepository 
+from app.repositories.user import UserProfileRepository
 
 from app.models.note import Note, NoteCreate, NoteUpdate
 from app.models.user import UserProfile, UserProfileUpdate
@@ -27,19 +27,25 @@ app.add_middleware(
 )
 
 # Dependency injection
+
+
 async def get_note_repo():
     return NoteRepository()
+
 
 async def get_user_repo():
     return UserProfileRepository()
 
 # Note endpoints
+
+
 @app.post("/notes/", response_model=Note)
 async def create_note(
     note: NoteCreate,
     note_repo: NoteRepository = Depends(get_note_repo)
 ):
     return await note_repo.create(note)
+
 
 @app.get("/notes/{note_id}", response_model=Note)
 async def get_note(
@@ -51,6 +57,7 @@ async def get_note(
         raise HTTPException(status_code=404, detail="Note not found")
     return note
 
+
 @app.get("/users/{user_id}/notes", response_model=List[Note])
 async def get_user_notes(
     user_id: UUID,
@@ -60,7 +67,8 @@ async def get_user_notes(
 ):
     return await note_repo.get_user_notes(user_id, page, page_size)
 
-@app.put("/notes/{note_id}", response_model=Note)
+
+@app.put("/notes/edit/{note_id}", response_model=Note)
 async def update_note(
     note_id: int,
     note: NoteUpdate,
@@ -71,7 +79,8 @@ async def update_note(
         raise HTTPException(status_code=404, detail="Note not found")
     return updated_note
 
-@app.delete("/notes/{note_id}")
+
+@app.delete("/notes/delete/{note_id}")
 async def delete_note(
     note_id: int,
     note_repo: NoteRepository = Depends(get_note_repo)
@@ -82,6 +91,8 @@ async def delete_note(
     return {"message": "Note deleted successfully"}
 
 # User profile endpoints
+
+
 @app.get("/users/{user_id}", response_model=UserProfile)
 async def get_user_profile(
     user_id: UUID,
@@ -91,6 +102,7 @@ async def get_user_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 @app.get("/users/username/{username}", response_model=UserProfile)
 async def get_user_by_username(
@@ -102,6 +114,7 @@ async def get_user_by_username(
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @app.put("/users/{user_id}", response_model=UserProfile)
 async def update_user_profile(
     user_id: UUID,
@@ -112,6 +125,7 @@ async def update_user_profile(
     if not updated_profile:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_profile
+
 
 @app.get("/users/search/{query}", response_model=List[UserProfile])
 async def search_users(
