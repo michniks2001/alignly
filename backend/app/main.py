@@ -10,6 +10,12 @@ from datetime import datetime
 from app.agent.get_events_from_data import agent_executor as event_agent_executor
 from app.agent.get_events_from_data import output_agent_results
 
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
 
 dotenv.load_dotenv()
 
@@ -52,6 +58,25 @@ db = firestore.client()
 
 
 # User profile endpoints
+
+@app.post("/users/create")
+async def create_user(user: UserCreate):
+    try:
+        # Create the user in Firebase Auth
+        user_record = auth.create_user(
+            email=user.email,
+            password=user.password
+        )
+        
+        return {
+            'uuid': user_record.uid,
+            'email': user_record.email
+        }
+        
+    except auth.EmailAlreadyExistsError:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/users/{user_id}")
