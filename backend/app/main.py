@@ -240,3 +240,89 @@ async def get_event_from_text(user_id: str, note_id: str):
     # # Run the agent with the text
     # response = event_agent_executor.run(text)
     # return output_agent_results(response)
+
+# Utility function to get the next event ID
+def get_next_event_id(user_id: str) -> int:
+    events_ref = db.collection(f"{user_id}_events").order_by('event_id', direction=firestore.Query.DESCENDING).limit(1)
+    events = events_ref.get()
+    
+    # If there are no existing events, start with 1
+    if len(events) == 0:
+        return 1
+    
+    # Get the highest event_id and increment by 1
+    return events[0].to_dict()['event_id'] + 1
+
+# Endpoint to create an event based on a note's content
+@app.post("/users/{user_id}/create_event_from_note/{note_id}")
+async def create_event_from_note(user_id: str, note_id: str):
+    
+    try:
+        # Fetch the note
+        note_ref = db.collection(user_id).document(note_id)
+        note = note_ref.get()
+        
+        if not note.exists:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        note_data = note.to_dict()
+        text = note_data['content']
+
+        # Use the event agent to extract event information from the note's content
+        results = output_agent_results(event_agent_executor, text)
+
+        # Get the next event ID
+        next_event_id = get_next_event_id(user_id)
+        
+        # Structure the event data
+        event = {
+            'event_id': next_event_id,
+            'note_id': note_id,
+            'content': results,
+            'created_at': datetime.now(),
+            'updated_at': datetime.now()
+        }
+
+        # Add the event to the user's event collection
+        doc_ref = db.collection(f"{user_id}_events").document(str(next_event_id))
+        doc_ref.set(event)
+        
+        return {
+            'user_id': user_id,
+            'event_id': next_event_id,
+            'message': 'Event created successfully'
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint to get all events for a user
+@app.get("/users/{user_id}/events")
+async def get_user_events(user_id: str):
+    try:
+        events = []
+        docs = db.collection(f"{user_id}_events").order_by('event_id').stream()
+        
+        for doc in docs:
+            event_data = doc.to_dict()
+            events.append(event_data)
+            
+        return events
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint to get a specific event by ID
+@app.get("/users/{user_id}/get_event/{event_id}")
+async def get_event(user_id: str, event_id: str):
+    try:
+        event_ref = db.collection(f"{user_id}_events").document(event_id)
+        event = event_ref.get()
+        
+        if not event.exists:
+            raise HTTPException(status_code=404, detail="Event not found")
+            
+        return event.to_dict()
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
