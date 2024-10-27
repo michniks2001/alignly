@@ -85,12 +85,17 @@ const Sidebar = () => {
 
         {user ? (
           <Stack spacing={1}>
-            <Button sx={buttonStyle}>New Note</Button>
+            <Link href='/notepad' passHref style={{ textDecoration: "none" }}>
+              <Button sx={buttonStyle}>New Note</Button>
+            </Link>
             <Button sx={buttonStyle}>Profile</Button>
+
+            <Link href='/events' passHref style={{ textDecoration: "none" }}>
+              <Button sx={buttonStyle}>Your Calendar</Button>
+            </Link>
             <Button onClick={handleLogout} sx={buttonStyle}>
               Logout
             </Button>
-            <Button sx={buttonStyle}>Your Calendar</Button>
           </Stack>
         ) : (
           <Stack spacing={1}>

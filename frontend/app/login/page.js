@@ -15,13 +15,14 @@ import { auth } from "../firebase";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import { useTheme } from "@mui/material/styles";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const theme = useTheme();
-
+  const router = useRouter();
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
@@ -31,7 +32,7 @@ const Login = () => {
         password
       );
       if (userCredentials.user.emailVerified) {
-        alert("Login Successful!");
+        router.push("/notepad");
       } else {
         alert("Verify your email before logging in");
       }
