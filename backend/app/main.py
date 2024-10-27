@@ -71,8 +71,8 @@ async def get_user_notes(
 @app.put("/notes/edit/{note_id}", response_model=Note)
 async def update_note(
     note_id: int,
-    note: NoteUpdate,
-    note_repo: NoteRepository = Depends(get_note_repo)
+    # note: NoteUpdate,
+    # note_repo: NoteRepository = Depends(get_note_repo)
 ):
     updated_note = await note_repo.update(note_id, note)
     if not updated_note:
