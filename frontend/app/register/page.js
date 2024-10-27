@@ -2,7 +2,11 @@
 
 import React, { useState } from "react";
 import { TextField, Button, Container, Typography } from "@mui/material";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "../firebase";
 

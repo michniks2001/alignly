@@ -11,10 +11,15 @@ const Sidebar = () => {
       p={2}
     >
       <Stack spacing={2}>
-        <Typography variant='h3'>Alignly</Typography>
+        <Link href='/home' style={{ textDecoration: "none" }}>
+          <Typography variant='h3' color='textPrimary'>
+            Alignly
+          </Typography>
+        </Link>
         <Divider />
         <Link style={{ width: "100%" }} href='/register'>
           <Button
+            size='large'
             disableRipple
             disableFocusRipple
             sx={{
@@ -31,6 +36,7 @@ const Sidebar = () => {
         </Link>
         <Link style={{ width: "100%" }} href='/register'>
           <Button
+            size='large'
             disableRipple
             disableFocusRipple
             variant='text'
