@@ -75,7 +75,7 @@ def parse(output):
 
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", "You are a helpful assistant. Any date should be written in a parsable format."),
+        ("system", "You are a helpful assistant. Any date should be written in a parsable format. If there are no events then return an empty string."),
         ("user", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ]
@@ -150,7 +150,8 @@ def output_agent_results(agent_executor, note_data):
 
 
 if __name__ == "__main__":
-    resi = output_agent_results(agent_executor,"You have homework due on the 21st of november 2024 and a test on the 22nd of november 2024")
+    # resi = output_agent_results(agent_executor,"You have homework due on the 21st of november 2024 and a test on the 22nd of november 2024")
+    resi = output_agent_results(agent_executor,"I am a cool guy")
 
     x= 0
 
