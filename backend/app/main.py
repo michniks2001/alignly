@@ -6,6 +6,8 @@ import dotenv
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
 from datetime import datetime
+import logging
+import traceback
 
 from app.agent.get_events_from_data import agent_executor as event_agent_executor
 from app.agent.get_events_from_data import output_agent_results
@@ -178,9 +180,15 @@ async def get_user_notes(user_id: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+logging.basicConfig(level=logging.INFO)
+
+class NoteUpdate(BaseModel):
+    title: str
+    content: str
     
 @app.put("/users/{user_id}/update_notes/{note_id}")
-async def update_note(user_id: str, note_id: str, title: str, content: str):
+async def update_note(user_id: str, note_id: str, note: NoteUpdate):
     try:
         note_ref = db.collection(user_id).document(note_id)
         
@@ -190,8 +198,8 @@ async def update_note(user_id: str, note_id: str, title: str, content: str):
         
         # Update the note
         note_ref.update({
-            'title': title,
-            'content': content,
+            'title': note.title,
+            'content': note.content,
             'updated_at': datetime.now()
         })
         
@@ -202,6 +210,8 @@ async def update_note(user_id: str, note_id: str, title: str, content: str):
         }
         
     except Exception as e:
+        logging.error("Error occured: %s", str(e))
+        logging.debug("Traceback: %s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
     
 
