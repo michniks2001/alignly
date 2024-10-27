@@ -10,6 +10,12 @@ from datetime import datetime
 from app.agent.get_events_from_data import agent_executor as event_agent_executor
 from app.agent.get_events_from_data import output_agent_results
 
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
 
 dotenv.load_dotenv()
 
@@ -53,6 +59,25 @@ db = firestore.client()
 
 # User profile endpoints
 
+@app.post("/users/create")
+async def create_user(user: UserCreate):
+    try:
+        # Create the user in Firebase Auth
+        user_record = auth.create_user(
+            email=user.email,
+            password=user.password
+        )
+        
+        return {
+            'uuid': user_record.uid,
+            'email': user_record.email
+        }
+        
+    except auth.EmailAlreadyExistsError:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/users/{user_id}")
 async def get_user_profile_by_uuid(user_id: str):
@@ -67,7 +92,7 @@ async def get_user_profile_by_uuid(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/users/username/{email}")
+@app.get("/users/get_user_from_email/{email}")
 async def get_user_by_email(email: str):
     try:
         user = auth.get_user_by_email(email)
@@ -111,7 +136,7 @@ def get_next_note_id(user_id: str) -> int:
     # Get the highest note_id and increment by 1
     return notes[0].to_dict()['note_id'] + 1
 
-@app.post("/users/{user_id}/notes")
+@app.post("/users/{user_id}/create_notes")
 async def create_note(user_id: str, title: str, content: str):
     try:
         # Get the next note ID
@@ -154,7 +179,7 @@ async def get_user_notes(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.put("/users/{user_id}/notes/{note_id}")
+@app.put("/users/{user_id}/update_notes/{note_id}")
 async def update_note(user_id: str, note_id: str, title: str, content: str):
     try:
         note_ref = db.collection(user_id).document(note_id)
@@ -180,7 +205,7 @@ async def update_note(user_id: str, note_id: str, title: str, content: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get("/users/{user_id}/notes/{note_id}")
+@app.get("/users/{user_id}/get_notes/{note_id}")
 async def get_note_from_user(user_id: str, note_id: str):
     try:
         note_ref = db.collection(user_id).document(note_id)
