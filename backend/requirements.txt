@@ -10,4 +10,6 @@ httpx==0.25.1
 firebase-admin
 langchain-core
 langchain-openai
+langchain
+langchain-community
 wikipedia
