@@ -51,25 +51,45 @@ async def get_note(
         raise HTTPException(status_code=404, detail="Note not found")
     return note
 
-@app.get("/users/{user_id}/notes", response_model=List[Note])
-async def get_user_notes(
-    user_id: UUID,
-    page: int = 1,
-    page_size: int = 10,
-    note_repo: NoteRepository = Depends(get_note_repo)
+# @app.get("/users/{user_id}/notes", response_model=List[Note])
+@app.get("/users/{user_id}/notes")
+def get_user_notes(
+    # user_id: UUID,
+    user_id: str,
+    # page: int = 1,
+    # page_size: int = 10,
+    # note_repo: NoteRepository = Depends(get_note_repo)
 ):
-    return await note_repo.get_user_notes(user_id, page, page_size)
+    # return note_repo.get_user_notes(user_id, page, page_size)
+    response = settings.supabase.table('notes')\
+    .select("*")\
+    .eq('user_id', user_id)\
+    .order('created_at', desc=True)\
+    .execute()
 
-@app.put("/notes/{note_id}", response_model=Note)
-async def update_note(
+    return response.data
+
+# @app.put("/notes/{note_id}", response_model=Note)
+@app.put("/notes/{note_id}")
+def update_note(
+# async def update_note(
     note_id: int,
-    note: NoteUpdate,
-    note_repo: NoteRepository = Depends(get_note_repo)
+    # note: NoteUpdate,
+    # note_repo: NoteRepository = Depends(get_note_repo)
 ):
-    updated_note = await note_repo.update(note_id, note)
-    if not updated_note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return updated_note
+    # Update the note in the Supabase table
+    response = settings.supabase.table('notes')\
+        .update(note_id)\
+        .eq('id', note_id)\
+            .execute()
+    
+    return response.data
+        # .update(update_data)\
+    # updated_note = await note_repo.update(note_id, note)
+
+    # if not updated_note:
+    #     raise HTTPException(status_code=404, detail="Note not found")
+    # return updated_note
 
 @app.delete("/notes/{note_id}")
 async def delete_note(
