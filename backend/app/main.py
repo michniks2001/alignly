@@ -16,6 +16,9 @@ import firebase_admin
 from firebase_admin import credentials, auth, firestore
 from datetime import datetime
 
+from app.agent.get_events_from_data import agent_executor as event_agent_executor
+from app.agent.get_events_from_data import output_agent_results
+
 
 dotenv.load_dotenv()
 
@@ -252,3 +255,40 @@ async def update_note(user_id: str, note_id: str, title: str, content: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/users/{user_id}/notes/{note_id}")
+async def get_note_from_user(user_id: str, note_id: str):
+    try:
+        note_ref = db.collection(user_id).document(note_id)
+        note = note_ref.get()
+        
+        if not note.exists:
+            raise HTTPException(status_code=404, detail="Note not found")
+            
+        return note.to_dict()
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+# Event Agent endpoints\
+@app.get("/event_from_text/{user_id}/{note_id}")
+async def get_event_from_text(user_id: str, note_id: str):
+    try:
+        note_ref = db.collection(user_id).document(note_id)
+        note = note_ref.get()
+
+        note_data = note.to_dict()
+
+        text = note_data['content']
+
+        results = output_agent_results(event_agent_executor, text)
+        return results
+        
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    # # Run the agent with the text
+    # response = event_agent_executor.run(text)
+    # return output_agent_results(response)

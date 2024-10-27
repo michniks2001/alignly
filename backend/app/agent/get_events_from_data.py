@@ -10,8 +10,11 @@ from langchain_openai import ChatOpenAI
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.retrievers import WikipediaRetriever
 import dotenv
+import os
 
 dotenv.load_dotenv()
+
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 retriever = WikipediaRetriever()
 
@@ -106,5 +109,48 @@ data = agent_executor.invoke(
 new_data = transform_event_data(data)
 
 
-x= 0
+# def output_agent_results(agent_executor,note_data):
+#     """
+#     Output the results of the agent to the console.
+    
+#     Args:
+#         data (dict): The data returned by the agent
+#     """
+#     data = agent_executor.invoke(
+#         {"input":note_data},
+#         return_only_outputs=True,
+#     )
+
+#     data = transform_event_data(data)
+#     return data
+
+def output_agent_results(agent_executor, note_data):
+    """
+    Output the results of the agent to the console.
+    
+    Args:
+        data (dict): The data returned by the agent
+    """
+    try:
+        data = agent_executor.invoke(
+            {"input": note_data},
+            return_only_outputs=True,
+        )
+
+        # Return empty dict if data is string
+        if isinstance(data, str):
+            return {}
+            
+        data = transform_event_data(data)
+        return data
+        
+    except Exception as e:
+        print(f"Error processing data: {str(e)}")
+        return {}
+
+
+if __name__ == "__main__":
+    resi = output_agent_results(agent_executor,"You have homework due on the 21st of november 2024 and a test on the 22nd of november 2024")
+
+    x= 0
 
