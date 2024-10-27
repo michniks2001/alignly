@@ -31,7 +31,7 @@ class Response(BaseModel):
     event_title: List[str] = Field(description="The title of event")
     event_description: List[str] = Field(description="The description of event")
 
-model = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
+model = ChatOpenAI(model="gpt-4", temperature=0)
 
 def transform_event_data(data):
     """
